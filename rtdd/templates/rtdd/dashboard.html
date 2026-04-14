@@ -1,0 +1,647 @@
+{% load static %}
+{% load django_vite %}
+<!DOCTYPE html>
+<html lang="en-AU">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pacific Sea Level Dashboard</title>
+  <meta name="description" content="Real-time monitoring of sea level and meteorological conditions in the Pacific from tide gauges operated by the Bureau of Meteorology.">
+  <meta name="keywords" content="sea level, pacific, tide gauge, meteorology, weather, climate, BOM, COSPPac">
+  <meta name="author" content="Bureau of Meteorology">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Pacific Sea Level Dashboard">
+  <meta property="og:description" content="Real-time monitoring of sea level and meteorological conditions in the Pacific from tide gauges operated by the Bureau of Meteorology.">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'rtdd/assets/cosppac-logo.png' %}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:type" content="website">
+
+  <link rel="icon" type="image/png" href="{% static 'rtdd/assets/cosppac-icon.png' %}">
+
+  <!-- Google Fonts - Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  {% vite_hmr_client %}
+  {% vite_asset 'js/main.js' %}
+</head>
+
+<body class="layout-boxed dashboard-page">
+  <div class="page">
+    <div class="page-wrapper">
+      <div class="page-body">
+        <div class="container-xl">
+          <!-- Header Section -->
+          <header id="header-section" class="card mb-3 bg-primary-lt">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <!-- Logos (Left) -->
+                <div class="col-md-4 border-end border-primary-subtle pe-4 max-width-380 d-none d-md-block">
+                  <div class="d-flex flex-column justify-content-center h-100 gap-3">
+                    <div class="logo-container">
+                      <a href="https://www.bom.gov.au" target="_blank">
+                        <img src="{% static 'rtdd/assets/bom-logo.png' %}" alt="Bureau of Meteorology Logo" style="max-height: 50px;">
+                      </a>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="logo-container">
+                        <a href="https://www.bom.gov.au/government-and-industry/government-sectors/indo-pacific-development/climate-and-oceans-support-program-in-the-pacific" target="_blank">
+                          <img src="{% static 'rtdd/assets/cosppac-logo.png' %}" alt="COSPPac Logo" style="max-height: 50px;">
+                        </a>
+                      </div>
+                      <div class="small lh-sm text-muted">
+                        Development supported by <a
+                          href="https://www.bom.gov.au/government-and-industry/government-sectors/indo-pacific-development/climate-and-oceans-support-program-in-the-pacific"
+                          target="_blank" class="text-decoration-none">COSPPac</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Title & About (Right) -->
+                <div class="col-md-8 ps-4">
+                  <h1 class="page-title text-primary fw-bold mb-2 page-title-large">
+                    Pacific Sea Level Dashboard
+                  </h1>
+                  <div class="text-secondary small mb-2">
+                    Real-time monitoring of sea level and meteorological conditions in the Pacific
+                  </div>
+
+                  <div class="mb-2">
+                    <a href="#" onclick="openModal('about')" class="text-decoration-none fw-bold">About</a>
+                    <span class="mx-2 text-muted">|</span>
+                    <a href="#" onclick="openModal('faq')" class="text-decoration-none fw-bold">FAQ</a>
+                    <span class="mx-2 text-muted">|</span>
+                    <a href="mailto:PSLMSupport@bom.gov.au" class="text-decoration-none fw-bold">Contact</a>
+                  </div>
+
+                  <p class="text-muted mb-0 small lh-sm">
+                    This Real-Time Data Display provides a convenient 'dashboard' view of sea level and weather
+                    conditions from tide gauges operated by the Bureau of Meteorology. The information is derived
+                    directly from automated sensing and recording equipment.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main id="main-content">
+            <!-- Controls Section -->
+            <section id="controls-section" class="card mb-3" aria-labelledby="controls-heading">
+              <div class="card-header bg-light py-2 d-flex flex-wrap flex-md-nowrap justify-content-between align-items-center gap-y-2">
+                <h2 id="controls-heading" class="station-title h4 m-0 text-secondary d-flex align-items-center gap-2 d-none d-md-inline">
+                  <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                  <span>Station Selection</span>
+                </h2>
+                  <div class="d-flex flex-column align-items-start align-items-md-center justify-content-center flex-grow-1 text-md-center px-md-3">
+                      <div id="station-info" class="fw-bold text-primary"></div>
+                      <span id="station-metadata" class="text-muted small"></span>
+                  </div>
+                <div class="btn-actions w-md-auto d-flex flex-shrink-0 justify-content-center justify-content-md-end">
+                  <button class="btn btn-action text-secondary" onclick="openModal('settings')">Settings</button>
+                  <button class="btn btn-action text-secondary" onclick="openModal('download')">Download</button>
+                  <button class="btn btn-action text-secondary" id="dashboard-button" onclick="toggleView()">Text view</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="row g-3 align-items-center">
+                  <div class="col-md-3">
+                    <button class="btn btn-outline-primary w-100" onclick="openModal('search')">
+                      <i class="fa-solid fa-magnifying-glass me-1" aria-hidden="true"></i>
+                      Station finder
+                    </button>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="d-flex gap-2">
+                      <select id="network-select" class="form-select" aria-label="Network selector">
+
+                          <option value="aus">Australia</option>
+                          <option value="pac" selected>Pacific</option>
+                      </select>
+                      <select id="station-select" class="form-select" aria-label="Station selector">
+                        <option selected>Select a station</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Measurements Grid -->
+            <div class="row g-3 mb-3" id="cards-row">
+              <!-- Sea Level -->
+              <div class="col-lg-4">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h2 class="card-title h3 mb-0">Sea Level</h2>
+                      <button class="btn btn-chart btn-sm btn-outline-primary" onclick="openChartWindow()">
+                        <i class="fa-solid fa-water me-2" aria-hidden="true"></i>
+                        Chart
+                      </button>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Actual</span>
+                        <span class="is-measurement text-end" id="water-level">--<sup>m</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Predicted</span>
+                        <span class="is-measurement text-end" id="predicted">--<sup>m</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="text-secondary">Residual</span>
+                        <span class="is-measurement text-end" id="residual">--<sup>m</sup></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Atmosphere -->
+              <div class="col-lg-4">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h2 class="card-title h3 mb-0">Atmosphere</h2>
+                      <button class="btn btn-chart btn-sm btn-outline-primary" onclick="openTemperatureChartWindow()">
+                        <i class="fa-solid fa-temperature-high me-2" aria-hidden="true"></i>
+                        Chart
+                      </button>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Air temperature</span>
+                        <span class="is-measurement text-end" id="air-temperature">--<sup>°C</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Atmospheric pressure</span>
+                        <span class="is-measurement text-end" id="mslp">--<sup>hPa</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="text-secondary">Water Temperature</span>
+                        <span class="is-measurement text-end" id="water-temperature">--<sup>°C</sup></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Wind -->
+              <div class="col-lg-4">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h2 class="card-title h3 mb-0">Wind</h2>
+                      <button class="btn btn-chart btn-sm btn-outline-primary" onclick="openWindChartWindow()">
+                        <i class="fa-solid fa-wind me-2" aria-hidden="true"></i>
+                        Chart
+                      </button>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Wind speed</span>
+                        <span class="is-measurement text-end" id="wind-speed">--<sup>m/s</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Gust speed</span>
+                        <span class="is-measurement text-end" id="gust-speed">--<sup>m/s</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary">Direction<br><small id="direction-type"></small></span>
+                        <span class="is-measurement text-end" id="wind-direction">--<sup>°</sup></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Diagnostics (Hidden by default) -->
+              <div class="col-lg-4" id="diagnostics-div" style="display: none">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <h2 class="card-title h3 mb-0">Diagnostics</h2>
+                      <button class="btn btn-chart btn-sm btn-outline-primary" onclick="openModal('diagnostics')">
+                        <i class="fa-solid fa-stethoscope me-2" aria-hidden="true"></i>
+                        Chart
+                      </button>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                      <div class="d-flex justify-content-between align-items-baseline border-bottom pb-1">
+                        <span class="text-secondary">Enclosure Temperature</span>
+                        <span class="is-measurement text-end" id="enclosure-temperature">--<sup>°C</sup></span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="text-secondary">Battery Voltage</span>
+                        <span class="is-measurement text-end" id="battery-voltage">--<sup>V</sup></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visualization Row -->
+            <div class="row g-3" id="graph-div">
+              <div class="col-lg-8">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <div class="chart-container dashboard-chart" id="sea-level-chart" role="region" aria-label="Sea Level Chart"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-4" id="rose-div">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h2 class="card-title h3 mb-0">Wind Direction</h2>
+                    <div class="text-secondary"><small id="direction-type-rose"></small></div>
+                    <div class="compass-scale-wrapper">
+                      <div class="compass-container">
+                        <div class="compass-face">
+                          <div class="degree-marks" id="degreeMarks"></div>
+                          <div class="cardinal-point north">N</div>
+                          <div class="cardinal-point east">E</div>
+                          <div class="cardinal-point south">S</div>
+                          <div class="cardinal-point west">W</div>
+                          <div class="cardinal-point intercardinal northeast">NE</div>
+                          <div class="cardinal-point intercardinal southeast">SE</div>
+                          <div class="cardinal-point intercardinal southwest">SW</div>
+                          <div class="cardinal-point intercardinal northwest">NW</div>
+                          <div class="wind-arrow" id="windArrow"></div>
+                          <div class="compass-center"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="wind-info">
+                      <div class="wind-direction-text" id="windDirectionText">North</div>
+                      <div class="wind-degrees" id="windDegrees">0°</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="d-print-none mt-2 mb-4">
+      <div class="container-xl">
+        <div class="row align-items-center">
+          <div class="col-12 text-center text-md-start mb-3 mb-md-0 text-muted small">
+            <div>
+              Copyright &copy; <span class="copyright-year">{% now "Y" %}</span>
+            </div>
+            <div>
+              Real-time data is intended to provide a general indication of the sea level and weather conditions at the tide gauge facility, and is not intended for use in scientific climate studies.
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modals -->
+  <!-- Settings Modal -->
+  <div class="modal fade" id="settings" tabindex="-1" aria-labelledby="settings-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="settings-title">Settings</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+          <div class="row mb-3">
+            <label for="display-hours" class="col-sm-4 col-form-label">Data display period</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="display-hours">
+                <option value="12">12 hours</option>
+                <option value="24" selected="selected">1 day</option>
+                <option value="84">7 days</option>
+                <option value="168">14 days</option>
+                <option value="336">28 days</option>
+
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="timezone" class="col-sm-4 col-form-label">Timezone</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="timezone">
+                <option value="utc">UTC</option>
+                <option value="lct">Local tide gauge</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="update-interval" class="col-sm-4 col-form-label">Refresh interval</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="update-interval">
+                <option value="3">3 minutes</option>
+                <option value="5">5 minutes</option>
+                <option value="10">10 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">60 minutes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="wind-direction-type" class="col-sm-4 col-form-label">Wind Direction</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="wind-direction-type">
+                <option value="meteorological">Meteorological</option>
+                <option value="oceanographic">Oceanographic</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="speed-units" class="col-sm-4 col-form-label">Speed Units</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="speed-units">
+                <option value="ms">m/s</option>
+                <option value="knots">Knots</option>
+                <option value="kmh">km/h</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="temperature-units" class="col-sm-4 col-form-label">Temperature Units</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="temperature-units">
+                <option value="celsius">Celsius</option>
+                <option value="fahrenheit">Fahrenheit</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="distance-units" class="col-sm-4 col-form-label">Distance Units</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="distance-units">
+                <option value="meter">Meters</option>
+                <option value="feet">Feet</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label for="pressure-units" class="col-sm-4 col-form-label">Pressure Units</label>
+            <div class="col-sm-8">
+              <select class="form-select" id="pressure-units">
+                <option value="hPa">HectoPascal</option>
+                <option value="psi">PSI</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Modal -->
+  <div class="modal fade" id="faq" tabindex="-1" aria-labelledby="faq-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="faq-title">Frequently Asked Questions</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <div class="mb-4">
+            <h4><strong>1. What is the source of the real-time data on the display?</strong></h4>
+            <p>The sea level and meteorological data displayed are those received from tidal gauge facilities
+              located in countries in the Pacific.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>2. What are the sea level predictions and where do they come from?</strong></h4>
+            <p>These are tide predictions generated by the Australian National Tidal Centre (tides@bom.gov.au)
+              and are revised every year.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>3. What is the 'residual'?</strong></h4>
+            <p>The residual is the difference between the actual observed sea level and the tide prediction.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>4. What is UTC time?</strong></h4>
+            <p>UTC (Coordinated Universal Time) is an international 24-hour date and time standard based on a
+              highly-accurate atomic clock.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>5. Why is '--' sometimes displayed for certain data on the display?</strong></h4>
+            <p>The '--' is displayed if no valid data is available from the tide gauge facility.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>6. How current is the real-time data on the display?</strong></h4>
+            <p>It is normal for the data displayed to lag behind the current UTC time due to the time required
+              to obtain the data and process it for display. Delays may also be experienced when there are
+              problems with data communications services or other processes used to transfer the tide gauge
+              data to the real-time display.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>7. What is meant by the Speed and Max values on the wind display?</strong></h4>
+            <p>The data used by the display contains the minimum, average and maximum values recorded for the
+              previous 1 minute. Samples are taken every one second and then the values to be reported are
+              calculated, time stamped and sent at the end of that minute. The displayed Speed is the average
+              of the preceding minutes valid one second samples. The displayed Max value is therefore the
+              highest valid one second sample of wind speed recorded in the previous minute.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>8. Who/what verifies the real-time data?</strong></h4>
+            <p>The data on the real-time display undergoes basic automated quality checks, and '--' is displayed
+              if there is no valid data received from the tide gauge facility. Real-time data is intended to
+              provide a general indication of the sea level and weather conditions at the tide gauge facility,
+              and is not intended for use in scientific climate studies.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>9. How do I obtain the data displayed in the charts of the real-time display?</strong></h4>
+            <p>Sea level and meteorological data for each of the Pacific country tide gauge facilities can be
+              obtained in monthly collections of data from <a
+                href="http://www.bom.gov.au/pacific/projects/pslm/" target="_blank">http://www.bom.gov.au/pacific/projects/pslm/</a>.
+              These monthly datasets receive additional quality checks that may include manual corrections by
+              data experts. Because of this, monthly datasets are better for scientific climate studies.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>10. Why does the real-time display recommend to 'Activate cookies' on my web browser?</strong></h4>
+            <p>The real-time display uses cookies to reduce the amount of data that needs to be transferred to
+              your computer to function; this makes much more efficient use of your computer network's
+              bandwidth. For best results and the most up-to-date display of data, please ensure that cookies
+              are enabled in your web browser settings. The display will still work with cookies disabled, but
+              will need to transfer 70 KB of data every minute to operate.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>11. What is the 'Text View'?</strong></h4>
+            <p>The Text View is an equivalent display of the real-time data in a tabular, non-graphical format.
+              The Text View is the default view for Internet Explorer 8 and older web browsers that do not
+              support some of the newer "Web 2.0" features such as HTML5 that is used by the real-time
+              display. Vision-impaired users may also choose to manually activate Text View using the icon at
+              the top of the display.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>12. There are two versions of real-time display - the 'Internet' and the 'Local' version - how are they different?</strong></h4>
+            <p>In the 'Internet' version of the real-time data display, the IT infrastructure of the Australian
+              Bureau of Meteorology acts as an intermediate platform to collect the sea level and weather data
+              from the tide gauge network and to serve this information to a real-time display application
+              that runs within a web browser.<br><br>This allows a user to view information from any tide
+              gauge in the Pacific network, and may be useful for monitoring sea level or weather conditions
+              as they move through the Pacific region.<br><br>In the 'Local' version of the real-time data
+              display, IT infrastructure within a Pacific country is used to receive information directly from
+              that country's tide gauge and display this information locally within the country.<br><br>This
+              version of real-time display may be useful in Pacific countries that experience issues with
+              international Internet connectivity and where the 'Internet' version is unsuitable. The 'Local'
+              version also uses a web browser to display information, but because of its local connection to
+              the country's tide gauge, this real-time display can only show information from the
+              locally-connected tide gauge.</p>
+          </div>
+
+          <div class="mb-4">
+            <h4><strong>13. How can I report an issue or provide suggestions?</strong></h4>
+            <p>For issues or suggestions, please contact: <a href="mailto:PSLMSupport@bom.gov.au">PSLMSupport@bom.gov.au</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download Modal -->
+  <div class="modal fade" id="download" tabindex="-1" aria-labelledby="download-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h2" id="download-title">Download Data</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="download-station" class="form-label">Station</label>
+            <select class="form-select mb-3" aria-label="Download station selector" id="download-station">
+              <option selected>Select a station</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="start-date" class="form-label">Start date</label>
+            <input type="date" class="form-control" id="start-date">
+          </div>
+
+          <div class="mb-3">
+            <label for="end-date" class="form-label">End date</label>
+            <input type="date" class="form-control" id="end-date">
+          </div>
+
+
+          <div class="mb-3">
+            <label class="form-label">Format</label>
+            <div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="download-format" id="download-format-csv" value="csv" checked>
+                <label class="form-check-label" for="download-format-csv">CSV</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="download-format" id="download-format-json" value="json">
+                <label class="form-check-label" for="download-format-json">JSON</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div id="download-error-message" class="text-danger mb-2"></div>
+            <button type="button" class="btn btn-primary" onclick="handleDownloadClick()">Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="modal fade" id="about" tabindex="-1" aria-labelledby="about-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="about-title">About the Dashboard</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+          <p>This Real-Time Data Display provides a convenient 'dashboard' view of sea level and weather
+            conditions from tide gauges operated by the Bureau of Meteorology.</p>
+
+          <h4>Disclaimer</h4>
+          <p class="small text-muted">
+            The information is for general guidance only and is derived directly from automated sensing and
+            recording equipment. The information is not checked or quality controlled.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagnostics Modal -->
+  <div class="modal fade" id="diagnostics" tabindex="-1" aria-labelledby="diagnostics-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="diagnostics-title">System Diagnostics</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="card mb-3 diagnostic-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold">Battery Voltage</span>
+                <span id="battery-voltage-modal" class="is-measurement">--</span>
+              </div>
+              <div class="modal-chart-container" id="enclosure-battery-chart" role="region" aria-label="Battery Voltage Chart"></div>
+            </div>
+          </div>
+
+          <div class="card diagnostic-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold">Enclosure Temperature</span>
+                <span id="enclosure-temperature-modal" class="is-measurement">--</span>
+              </div>
+              <div class="modal-chart-container" id="enclosure-temperature-chart" role="region" aria-label="Enclosure Temperature Chart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Modal -->
+  <div class="modal fade" id="search" tabindex="-1" aria-labelledby="search-title">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="search-title">Station Finder</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="map-placeholder" id="map" style="height: 500px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

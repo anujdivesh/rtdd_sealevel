@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-sea_level}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      BUILD_STATUS: ${BUILD_STATUS:-dev}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      # NOTE: This host is used to generate <script src=...> URLs for the browser.
+      # The browser can't resolve the Docker-internal hostname `vite`, so default to localhost.
+      VITE_DEV_SERVER_HOST: ${VITE_DEV_SERVER_HOST:-localhost}
+      VITE_DEV_SERVER_PORT: ${VITE_DEV_SERVER_PORT:-5173}
+      VITE_DEV_SERVER_PROTOCOL: ${VITE_DEV_SERVER_PROTOCOL:-http}
+      DB_NAME: ${DB_NAME:-sea_level}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: db
+      DB_PORT: 5432
+      USE_HTTPS: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - staticfiles:/app/staticfiles
+    expose:
+      - "8000"
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - django
+    ports:
+      - "8000:80"
+    volumes:
+      - staticfiles:/staticfiles:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+  vite:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -lc "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    env_file:
+      # Note: Docker Compose only auto-loads a `.env` next to this compose file for
+      # variable substitution. This `env_file` ensures the Vite dev server process
+      # receives VITE_API_HOSTNAME from the Django project's env file.
+      - ./rtdd_django/.env
+    volumes:
+      - ./:/app
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
+  staticfiles:

@@ -1,0 +1,16 @@
+[Unit]
+Description=gunicorn daemon for Django project
+After=network.target
+
+[Service]
+User=sea_level_admin
+Group=sea_level_admin
+WorkingDirectory=/home/sea_level_admin/src/rtdd_django/
+Environment="PATH=/home/sea_level_admin/src/rtdd_django/.venv/bin"
+ExecStart=/home/sea_level_admin/src/rtdd_django/.venv/bin/gunicorn \
+          --config gunicorn_config.py \
+          rtdd_django.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+

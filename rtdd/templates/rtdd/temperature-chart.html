@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature and Pressure Charts</title>
+    <link rel="icon" type="image/png" href="{% static 'rtdd/assets/cosppac-icon.png' %}">
+
+    <!-- Google Fonts - Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    {% load django_vite %}
+    {% vite_hmr_client %}
+    {% vite_asset 'js/main.js' %}
+</head>
+
+<body class="chart-page-body">
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1 id="station-name">Temperature and Pressure Charts</h1>
+            <p id="station-metadata"></p>
+        </div>
+
+        <div class="chart-container temperature-chart-container">
+            <div class="chart-title">Atmospheric Pressure</div>
+            <div id="pressure-chart" class="chart-plot" role="region" aria-label="Atmospheric Pressure Chart"></div>
+        </div>
+
+        <div class="chart-container temperature-chart-container">
+            <div class="chart-title">Water and Air Temperature</div>
+            <div id="temperature-chart" class="chart-plot" role="region" aria-label="Water and Air Temperature Chart"></div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,475 @@
+@import "@tabler/core/dist/css/tabler.min.css";
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --font-family-base: 'Roboto', sans-serif;
+}
+
+body {
+    font-family: var(--font-family-base);
+}
+
+body.dashboard-page {
+  background: #c0d8ed radial-gradient(circle, #369 0%, #d6eafc 100%);
+  padding: 1rem;
+  border-radius: 6px;
+  min-height: calc(100vh - 1rem);
+}
+
+body.dashboard-page .page {
+    /* This stops the background going transparent at lower widths */
+  background-color: var(--tblr-bg-surface);
+}
+
+body.dashboard-page .page-body {
+    /* This stops the background going transparent at lower widths */
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* =========================================
+   Shared Components
+   ========================================= */
+
+.chart-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 10px;
+}
+
+#sea-level-chart {
+    border: none;
+    box-shadow: none;
+}
+
+/* Page Header Styles */
+.page-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.page-header h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.page-header p {
+    font-size: 14px;
+    color: var(--secondary-color);
+    margin: 0;
+}
+
+.page-title-large {
+  font-size: 1.8rem;
+}
+
+/* Chart Title Styles */
+.chart-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: initial;
+}
+
+.station-title {
+    font-size: 1rem;
+    font-weight: inherit;
+}
+
+.chart-plot {
+    width: 100%;
+    height: 100%;
+}
+
+/* Base Body Styles for Chart Pages */
+.chart-page-body {
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+/* =========================================
+   Dashboard & General Styles
+   ========================================= */
+
+/* Header Button Group Styles */
+.card-header .btn-actions {
+    align-self: stretch;
+    margin: -0.5rem -1.25rem -0.5rem 0; /* Match Tabler card-header padding */
+}
+
+.card-header .btn-actions .btn:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.card-header .btn-action {
+    font-size: 1rem;
+    font-weight: inherit;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+#station-info {
+    font-size: 1.5em;
+}
+
+
+.is-measurement {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: var(--primary-color);
+    word-break: break-all;
+}
+
+.map-placeholder {
+    width: 100%;
+    height: 400px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Dashboard specific override for chart container */
+.dashboard-chart {
+    height: 100%;
+    min-height: 400px;
+    margin: 0 auto;
+}
+
+
+.diagnostic-card {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+.modal-chart-container {
+    background-color: white;
+    height: 200px;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: none;
+    border: none;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.modal-chart-container canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.btn-chart {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-chart:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Title logos */
+.max-width-380 {
+    max-width: 380px;
+}   
+
+
+
+
+/* Compass Styles */
+.compass-scale-wrapper {
+    container-type: inline-size;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compass-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center center;
+}
+
+.compass-face {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    border: 4px solid #FFFFFF;
+    box-shadow:
+        0 0 20px rgba(212, 175, 55, 0.3),
+        inset 0 2px 5px rgba(255,255,255,0.8),
+        inset 0 -2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compass-center {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: radial-gradient(circle at 30% 30%, #d4af37 0%, #b8941f 100%);
+    border-radius: 50%;
+    border: 2px solid #8b7220;
+    z-index: 10;
+    box-shadow:
+        0 3px 8px rgba(0,0,0,0.4),
+        inset 0 1px 2px rgba(255,255,255,0.5),
+        inset 0 -1px 2px rgba(0,0,0,0.3);
+}
+
+.wind-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 50%;
+    left: 50%;
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 5;
+}
+
+.wind-arrow::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    left: -15px;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid #dc3545;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.wind-arrow::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: -4px;
+    width: 8px;
+    height: 60px;
+    background: #dc3545;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.wind-arrow.hidden {
+    display: none;
+}
+
+.cardinal-point {
+    position: absolute;
+    font-weight: 700;
+    font-size: 20px;
+    color: #2c3e50;
+    text-shadow:
+        0 1px 2px rgba(255,255,255,0.9),
+        0 -1px 1px rgba(0,0,0,0.1);
+    letter-spacing: 1px;
+}
+
+.cardinal-point.north {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #dc3545;
+    font-size: 28px;
+    text-shadow:
+        0 2px 4px rgba(255,255,255,0.9),
+        0 -1px 2px rgba(0,0,0,0.2);
+}
+
+.cardinal-point.south {
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+}
+
+.cardinal-point.east {
+    right: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+}
+
+.cardinal-point.west {
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+}
+
+.cardinal-point.intercardinal {
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.cardinal-point.northeast {
+    top: 45px;
+    right: 50px;
+}
+
+.cardinal-point.southeast {
+    bottom: 40px;
+    right: 50px;
+}
+
+.cardinal-point.southwest {
+    bottom: 40px;
+    left: 50px;
+}
+
+.cardinal-point.northwest {
+    top: 45px;
+    left: 50px;
+}
+
+.degree-marks {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.degree-mark {
+    position: absolute;
+    width: 1.5px;
+    height: 12px;
+    background: var(--secondary-color);
+    top: 5px;
+    left: 50%;
+    transform-origin: 50% 135px;
+    transform: translateX(-50%);
+}
+
+.degree-mark.major {
+    height: 20px;
+    width: 2.5px;
+    background: #495057;
+    transform-origin: 50% 135px;
+}
+
+.wind-info {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.wind-speed {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.wind-direction-text {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.wind-degrees {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+    font-family: 'Roboto', monospace;
+}
+
+/* =========================================
+   Individual Page Overrides
+   ========================================= */
+
+.temperature-chart-container {
+    height: calc(50vh - 80px);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.wind-chart-container {
+    height: calc(100vh - 150px);
+    padding: 20px;
+}
+
+/* =========================================
+   Portal Page Styles
+   ========================================= */
+
+.portal-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.portal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.portal-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    display: block;
+    text-align: center;
+}
+
+/* =========================================
+   Media Queries & Responsive Adjustments
+   ========================================= */
+/* Stop bug with container width jumping when reducing viewport width */
+@media (min-width: 1200px) {
+  .container-xl {
+    max-width: none !important;
+  }
+}
+
+/* Mobile Styles */
+@media (max-width: 767.98px) {
+    .card-header .btn-actions {
+        margin: 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    #station-info {
+        font-size: 1.1rem;
+    }
+}
+
+/* Text view mode: 2x2 grid layout on md and up */
+@media (min-width: 768px) {
+    #cards-row.text-view-mode > .col-lg-4 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
