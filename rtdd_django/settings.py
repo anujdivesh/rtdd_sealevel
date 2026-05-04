@@ -69,6 +69,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -103,7 +105,7 @@ WSGI_APPLICATION = 'rtdd_django.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+"""
 DATABASES = {
 
     'default': {
@@ -111,6 +113,19 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    }
+}
+"""
+##FOR TESTING
+DATABASES = {
+
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sea_level_spc',
+        'USER': 'postgres',
+        'PASSWORD': 'Oceanportal2017*',
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }

@@ -16,14 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic.base import TemplateView
 
-from .views import index
 
 admin.site.site_header = "RTDD Admin"
 admin.site.site_title = "RTDD Admin"
 urlpatterns = [
     path("rtdd/", include("rtdd.urls")),
+    path("api/", include("rtdd.api_urls")),
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
