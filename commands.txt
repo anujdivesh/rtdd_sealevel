@@ -1,0 +1,5 @@
+FORCE_DAYS_OFFSET=-1 python scripts/ingest_obs_holdings.py
+
+
+python scripts/import_telemetry_observations.py
+
